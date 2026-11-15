@@ -1,0 +1,76 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deb:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ubuntu
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ubuntu/package-lock.json
+
+      - name: Abhängigkeiten
+        run: npm ci
+
+      - name: Typprüfung und Tests
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: .deb bauen (amd64 und arm64)
+        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Paket installieren und Selbsttest unter Ubuntu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth dbus-x11 ./release/bike-app_*_amd64.deb
+          dpkg -L bike-app | grep -E "bike-app$|\.desktop$"
+          grep Exec /usr/share/applications/bike-app.desktop
+          mkdir -p smoke
+          xvfb-run -a -s "-screen 0 1600x1000x24" dbus-run-session -- bike-app --ozone-platform=x11 --smoke-test="$PWD/smoke" || (cat smoke/result.json; exit 1)
+          cat smoke/result.json
+
+      - name: Testbilder
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selbsttest
+          path: ubuntu/smoke/
+
+      - name: Pakete
+        uses: actions/upload-artifact@v4
+        with:
+          name: bike-app-deb
+          path: ubuntu/release/*.deb
+
+      - name: Release veröffentlichen
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ubuntu/release/*.deb
+          body: |
+            Installationspaket für Ubuntu 22.04 / 24.04 (amd64 und arm64).
+
+            ```bash
+            sudo apt install ./bike-app_<Version>_amd64.deb
+            ```
+
+            Die Testbilder vom Selbsttest unter Ubuntu liegen im Lauf der GitHub Action (Artefakt „selbsttest“).

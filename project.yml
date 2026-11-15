@@ -1,0 +1,69 @@
+name: BikeApp
+options:
+  bundleIdPrefix: local.bikeapp
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    # Signing with the Apple Development certificate keeps the app's identity stable across builds,
+    # so keychain, Bluetooth and Spotify permissions survive updates.
+    CODE_SIGN_IDENTITY: "Apple Development"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: 2JVJCVAYS8
+    ENABLE_HARDENED_RUNTIME: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+targets:
+  BikeApp:
+    type: application
+    platform: macOS
+    sources:
+      - path: BikeApp
+    info:
+      path: BikeApp/Info.plist
+      properties:
+        CFBundleName: Bike App
+        CFBundleDisplayName: Bike App
+        CFBundleShortVersionString: "0.1"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.healthcare-fitness
+        LSMinimumSystemVersion: "26.0"
+        NSPrincipalClass: NSApplication
+        NSBluetoothAlwaysUsageDescription: Bike App verbindet sich per Bluetooth mit deinem Trainer, dem Zwift Click, deinem Pulsgurt und deinem Kadenzsensor.
+        NSAppleEventsUsageDescription: Bike App zeigt in der Leiste, was Spotify gerade spielt, und steuert Wiedergabe und Titelwechsel.
+    settings:
+      base:
+        PRODUCT_NAME: BikeApp
+        PRODUCT_MODULE_NAME: BikeApp
+        PRODUCT_BUNDLE_IDENTIFIER: local.bikeapp.BikeApp
+        GENERATE_INFOPLIST_FILE: NO
+        # Liquid Glass icon from Icon Composer (BikeApp/AppIcon.icon); source files live in Icon/B-Glas.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  BikeAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: BikeAppTests
+    dependencies:
+      - target: BikeApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.bikeapp.BikeAppTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/BikeApp.app/Contents/MacOS/BikeApp"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  BikeApp:
+    build:
+      targets:
+        BikeApp: all
+        BikeAppTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - BikeAppTests

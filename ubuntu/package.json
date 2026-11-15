@@ -1,0 +1,70 @@
+{
+  "name": "bike-app",
+  "productName": "Bike App",
+  "version": "0.1.0",
+  "description": "Trainer-App für Wahoo Kickr Core und Zwift Click, ohne virtuelle Welt",
+  "homepage": "https://github.com/mohoel/bike-app",
+  "author": {
+    "name": "mohoel",
+    "email": "mohoel@users.noreply.github.com"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node build.mjs && electron .",
+    "demo": "node build.mjs && electron . --demo-ride",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dist": "node build.mjs && electron-builder --linux deb --x64 --arm64 --publish never"
+  },
+  "devDependencies": {
+    "@fontsource/roboto-condensed": "^5.1.0",
+    "@types/node": "^22.0.0",
+    "dbus-next": "^0.10.2",
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0",
+    "esbuild": "^0.25.0",
+    "preact": "^10.25.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  },
+  "build": {
+    "appId": "local.bikeapp.BikeApp",
+    "productName": "Bike App",
+    "executableName": "bike-app",
+    "directories": {
+      "buildResources": "resources",
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "package.json"
+    ],
+    "linux": {
+      "target": "deb",
+      "category": "Utility",
+      "icon": "resources/icon.png",
+      "synopsis": "Trainer-App für Kickr Core und Zwift Click",
+      "executableArgs": [
+        "--ozone-platform=x11"
+      ],
+      "artifactName": "bike-app_${version}_${arch}.${ext}"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0",
+        "bluez"
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+.DS_Store
+build/
+.claude/
+.mcp.json
+xcuserdata/
+ubuntu/node_modules/
+ubuntu/dist/
+ubuntu/release/
+ubuntu/smoke/
