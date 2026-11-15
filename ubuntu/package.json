@@ -65,6 +65,11 @@
         "libsecret-1-0",
         "bluez"
       ]
-    }
+    },
+    "publish": null
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mohoel/bike-app.git"
   }
 }
