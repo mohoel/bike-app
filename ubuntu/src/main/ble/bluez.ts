@@ -86,6 +86,7 @@ export class BlueZTransport implements BleTransport {
       events.adapterState("unavailable", "Bluetooth wird nur unter Linux unterstützt (BlueZ)");
       return;
     }
+    let slow: ReturnType<typeof setTimeout> | undefined;
     try {
       const bus = dbus.systemBus();
       this.bus = bus;
@@ -94,13 +95,17 @@ export class BlueZTransport implements BleTransport {
         this.events.adapterState("unavailable", "Keine Verbindung zum System-Bus");
       });
       bus.on("message", (msg: dbus.Message) => this.onMessage(msg));
+      // An inactive bluetooth.service can leave the first call waiting for a long time.
+      slow = setTimeout(() => events.adapterState("unavailable", "Bluetooth antwortet nicht – läuft bluetooth.service?"), 6000);
       await this.call("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", ["type='signal',sender='org.bluez'"]);
       const reply = await this.call(BLUEZ, "/", OM, "GetManagedObjects");
+      clearTimeout(slow);
       const managed = unwrap(reply.body[0]) as Record<string, Record<string, Props>>;
       for (const [path, interfaces] of Object.entries(managed)) this.objects.set(path, interfaces);
       this.pickAdapter();
       for (const path of this.objects.keys()) this.deviceChanged(path, true);
     } catch (error) {
+      clearTimeout(slow);
       const text = String((error as Error)?.message ?? error);
       events.adapterState("unavailable", text.includes("ServiceUnknown") || text.includes("org.bluez") ? "BlueZ läuft nicht (sudo systemctl start bluetooth)" : `Bluetooth nicht erreichbar: ${text}`);
     }
